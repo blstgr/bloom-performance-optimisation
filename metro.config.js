@@ -1,5 +1,4 @@
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
-const { withStorybook } = require('@storybook/react-native/withStorybook');
 
 /**
  * Metro configuration
@@ -22,9 +21,4 @@ const config = {
   },
 };
 
-module.exports = withStorybook(mergeConfig(defaultConfig, config), {
-  websockets: {
-    host: 'localhost',
-    port: 7007,
-  },
-});
+module.exports = mergeConfig(defaultConfig, config);

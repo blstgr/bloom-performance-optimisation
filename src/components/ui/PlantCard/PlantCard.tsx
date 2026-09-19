@@ -35,7 +35,7 @@ export type PlantCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-export function PlantCard({
+function PlantCardComponent({
   accessibilityLabel,
   badge,
   image,
@@ -65,6 +65,11 @@ export function PlantCard({
     </Pressable>
   );
 }
+
+/** Memoized because the Home and Favorites grids re-render whenever *any* PlantDataProvider field
+ * changes — including ones the grid doesn't read. A card only needs to re-render when its own
+ * props change, so callers must pass a referentially stable `onPress` for this to take effect. */
+export const PlantCard = React.memo(PlantCardComponent);
 
 const styles = StyleSheet.create({
   badge: {

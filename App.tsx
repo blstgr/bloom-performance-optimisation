@@ -18,16 +18,10 @@ function App() {
   );
 }
 
-let AppEntryPoint = App;
-
-if (process.env.STORYBOOK_ENABLED === 'true') {
-  AppEntryPoint = require('./.rnstorybook').default;
-}
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
 });
 
-export default AppEntryPoint;
+export default App;

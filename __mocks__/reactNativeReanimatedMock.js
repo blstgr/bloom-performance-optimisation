@@ -28,6 +28,18 @@ const Reanimated = {
   View: ReactNative.View,
   createAnimatedComponent: component => component,
   interpolate,
+  // Colors can't be linearly blended the way interpolate() blends numbers, and tests only ever
+  // assert the endpoints — snap to whichever end of the range `value` is nearer.
+  interpolateColor: (value, inputRange, outputRange) => {
+    const lastIndex = inputRange.length - 1;
+    if (value <= inputRange[0]) return outputRange[0];
+    if (value >= inputRange[lastIndex]) return outputRange[lastIndex];
+
+    const upperIndex = inputRange.findIndex(point => value <= point);
+    const lowerIndex = Math.max(0, upperIndex - 1);
+    const midpoint = (inputRange[lowerIndex] + inputRange[upperIndex]) / 2;
+    return value < midpoint ? outputRange[lowerIndex] : outputRange[upperIndex];
+  },
   measure: () => null,
   runOnJS: callback => callback,
   scrollTo: () => undefined,

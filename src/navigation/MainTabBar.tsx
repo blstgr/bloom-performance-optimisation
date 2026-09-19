@@ -42,7 +42,7 @@ export function MainTabBar({
         onPress: onAddPlant,
       },
       {
-        accessibilityLabel: 'plant wiki',
+        accessibilityLabel: 'Plant wiki',
         icon: 'library',
         key: SCREENS.LIBRARY,
         onPress: () => onNavigate(SCREENS.LIBRARY),

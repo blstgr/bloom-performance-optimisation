@@ -25,7 +25,7 @@ import { layout, spacing } from '../theme';
 const ARTICLE_HERO_HEIGHT = 388;
 const ARTICLE_HERO_COLLAPSED_HEIGHT = 141;
 const ARTICLE_HERO_COLLAPSE_DISTANCE = ARTICLE_HERO_HEIGHT - ARTICLE_HERO_COLLAPSED_HEIGHT;
-// Mock/demo species (Storybook, seed data) have no generated wikiArticle — fall back to
+// Mock/seed species have no generated wikiArticle — fall back to
 // repeating the one real sentence they do have, purely so that path still renders something.
 const FALLBACK_ARTICLE_PARAGRAPH_COUNT = 5;
 const SCROLL_EVENT_THROTTLE_MS = 16;

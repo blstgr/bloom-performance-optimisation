@@ -8,8 +8,8 @@ import type { PlantSpecies } from './types';
  * instead of an unhandled key silently falling through to a default branch. */
 export type FavoritesTabKey = 'all' | 'easy' | 'manageable' | 'diva' | 'pet-safe' | 'bright' | 'shade';
 
-/** See docs/favs-spec.md for what each tab axis matches. */
-export const FAVORITES_TABS: (TabItem & { key: FavoritesTabKey })[] = [
+/** The single source of the favorites tab axes — see docs/favs-spec.md for what each one matches. */
+export const FAVORITES_TABS: TabItem<FavoritesTabKey>[] = [
   { key: 'all', label: 'All' },
   { key: 'easy', label: 'Easy Peasy' },
   { key: 'manageable', label: 'Somewhat Needy' },

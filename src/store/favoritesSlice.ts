@@ -22,8 +22,12 @@ const favoritesSlice = createSlice({
         state.push(action.payload);
       }
     },
-    removeFavorite: (state, action: PayloadAction<string>) =>
-      state.filter(item => item.speciesId !== action.payload),
+    removeFavorite: (state, action: PayloadAction<string>) => {
+      const existingIndex = state.findIndex(item => item.speciesId === action.payload);
+      if (existingIndex !== -1) {
+        state.splice(existingIndex, 1);
+      }
+    },
     toggleFavorite: (state, action: PayloadAction<FavoriteItem>) => {
       const existingIndex = state.findIndex(item => item.speciesId === action.payload.speciesId);
       if (existingIndex === -1) {

@@ -7,7 +7,7 @@ import { PlantCard } from '../components/ui/PlantCard';
 import { ScreenLayout } from '../components/ui/ScreenLayout';
 import { Tabs } from '../components/ui/Tabs';
 import { TopActions } from '../components/ui/TopActions';
-import { FAVORITES_TABS, matchesTab, type FavoritesTabKey } from '../features/plants/data/favoritesTabs';
+import { FAVORITES_TABS, matchesTab } from '../features/plants/data/favoritesTabs';
 import { usePlantData } from '../features/plants/data/PlantDataProvider';
 import type { PlantSpecies } from '../features/plants/data/types';
 import { SCREENS, type FavoritesScreenProps, useTabScreenNavigation } from '../navigation';
@@ -41,8 +41,8 @@ export function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   // would mean an unresolvable species leaves the heart item visible while this screen bounces
   // straight back to Home the moment it's tapped.
   React.useEffect(() => {
-    if (favoritedSpecies.length === 0) navigation.navigate(SCREENS.HOME);
-  }, [favoritedSpecies.length, navigation]);
+    if (favorites.length === 0) navigation.navigate(SCREENS.HOME);
+  }, [favorites.length, navigation]);
 
   return (
     <ScreenLayout
@@ -72,11 +72,7 @@ export function FavoritesScreen({ navigation }: FavoritesScreenProps) {
       )}>
       <Tabs
         activeKey={effectiveActiveTab}
-        // Tabs is generic (its own tab data could come from anywhere, e.g. Storybook), so its
-        // onTabPress hands back a plain string — safe to narrow back to FavoritesTabKey here since
-        // `tabs` above is always sourced from FAVORITES_TABS, whose own keys are the only ones
-        // Tabs can ever report.
-        onTabPress={key => setActiveTab(key as FavoritesTabKey)}
+        onTabPress={setActiveTab}
         tabs={availableTabs}
       />
       <PhotoGrid>

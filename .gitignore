@@ -56,7 +56,6 @@ tmp/
 temp/
 coverage/
 *.jsbundle
-storybook-static/
 
 # Fastlane
 **/fastlane/report.xml

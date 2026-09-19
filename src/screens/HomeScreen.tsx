@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type ImageSourcePropType } from 'react-native';
 
 import { AppText } from '../components/ui/AppText';
 import { BottomActions } from '../components/ui/BottomActions';
@@ -15,20 +15,57 @@ import { colors, layout, spacing } from '../theme';
 
 const EMPTY_SUBTITLE_LINE_HEIGHT = 20;
 
+type HomePlantGridItemProps = {
+  customName: string;
+  image: ImageSourcePropType;
+  onOpenPlant: (ownedPlantId: string) => void;
+  ownedPlantId: string;
+};
+
+/** Memoized so an unrelated PlantDataProvider update (e.g. a Library search writing search
+ * history) re-renders HomeScreen without re-rendering every card. All four props stay
+ * referentially stable across such a render, so React.memo bails out here and PlantCard below
+ * never re-renders. */
+function HomePlantGridItemComponent({
+  customName,
+  image,
+  onOpenPlant,
+  ownedPlantId,
+}: HomePlantGridItemProps) {
+  const handlePress = React.useCallback(
+    () => onOpenPlant(ownedPlantId),
+    [onOpenPlant, ownedPlantId],
+  );
+
+  return (
+    <PlantCard
+      accessibilityLabel={`Open ${customName}`}
+      image={image}
+      onPress={handlePress}
+    />
+  );
+}
+
+const HomePlantGridItem = React.memo(HomePlantGridItemComponent);
+
 export function HomeScreen({ navigation }: HomeScreenProps) {
   const { navigateTab, openAddPlant, openPlantDetail, openSettings } = useTabScreenNavigation(navigation);
   const { getSpeciesById, ownedPlants } = usePlantData();
-  const plants = ownedPlants
-    .map(ownedPlant => {
-      const species = getSpeciesById(ownedPlant.speciesId);
-      if (!species) return null;
+  const plants = React.useMemo(
+    () =>
+      ownedPlants
+        .map(ownedPlant => {
+          const species = getSpeciesById(ownedPlant.speciesId);
+          if (!species) return null;
 
-      return {
-        ownedPlant,
-        species,
-      };
-    })
-    .filter(item => item != null);
+          return {
+            ownedPlant,
+            species,
+          };
+        })
+        .filter(item => item != null),
+    [getSpeciesById, ownedPlants],
+  );
 
   return (
     <ScreenLayout
@@ -60,13 +97,12 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         {plants.length > 0 ? (
           <PhotoGrid>
             {plants.map(({ ownedPlant }) => (
-              <PlantCard
+              <HomePlantGridItem
                 key={ownedPlant.ownedPlantId}
-                accessibilityLabel={`Open ${ownedPlant.customName}`}
+                customName={ownedPlant.customName}
                 image={ownedPlant.image}
-                onPress={() => {
-                  openPlantDetail(ownedPlant.ownedPlantId);
-                }}
+                onOpenPlant={openPlantDetail}
+                ownedPlantId={ownedPlant.ownedPlantId}
               />
             ))}
           </PhotoGrid>

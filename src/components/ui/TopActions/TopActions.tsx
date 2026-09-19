@@ -18,7 +18,6 @@ type TopActionsBaseProps = {
   onMore?: () => void;
   onRightPress?: () => void;
   rightAccessibilityState?: AccessibilityState;
-  rightAction?: ReactNode;
   rightIcon?: IconName;
   rightLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -28,7 +27,6 @@ type TopActionsBaseProps = {
 type CenteredTopActionsProps = TopActionsBaseProps & {
   mode?: 'centered';
   leftAccessibilityState?: AccessibilityState;
-  leftAction?: ReactNode;
   leftIcon?: IconName;
   leftLabel?: string;
   onClose?: () => void;
@@ -37,7 +35,6 @@ type CenteredTopActionsProps = TopActionsBaseProps & {
 
 type HeroTopActionsProps = TopActionsBaseProps & {
   leftAccessibilityState?: never;
-  leftAction?: never;
   leftIcon?: never;
   leftLabel?: never;
   mode: 'hero';
@@ -81,13 +78,11 @@ function TopActionButton({
 }
 
 function renderAction(
-  action: ReactNode,
   icon: IconName | undefined,
   label: string | undefined,
   onPress: (() => void) | undefined,
   accessibilityState?: AccessibilityState,
 ) {
-  if (action) return action;
   if (!icon) return null;
 
   return (
@@ -106,14 +101,12 @@ export function TopActions(props: TopActionsProps) {
     onMore,
     onRightPress,
     rightAccessibilityState,
-    rightAction,
     rightIcon,
     rightLabel,
     style,
     title,
   } = props;
   const resolvedRightAction = renderAction(
-    rightAction,
     rightIcon ?? (onMore ? 'more' : undefined),
     rightLabel ?? (onMore ? 'More options' : undefined),
     onRightPress ?? onMore,
@@ -136,7 +129,6 @@ export function TopActions(props: TopActionsProps) {
   }
 
   const resolvedLeftAction = renderAction(
-    props.leftAction,
     props.leftIcon ?? (props.onClose ? 'close' : undefined),
     props.leftLabel ?? (props.onClose ? 'Close' : undefined),
     props.onLeftPress ?? props.onClose,
