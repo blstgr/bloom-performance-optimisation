@@ -54,16 +54,9 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const plants = React.useMemo(
     () =>
       ownedPlants
-        .map(ownedPlant => {
-          const species = getSpeciesById(ownedPlant.speciesId);
-          if (!species) return null;
-
-          return {
-            ownedPlant,
-            species,
-          };
-        })
-        .filter(item => item != null),
+        // The species lookup is a filter, not a projection: a plant whose species can't be
+        // resolved yet is dropped from the grid. Nothing downstream reads the species itself.
+        .filter(ownedPlant => getSpeciesById(ownedPlant.speciesId) != null),
     [getSpeciesById, ownedPlants],
   );
 
@@ -96,7 +89,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
       )}>
         {plants.length > 0 ? (
           <PhotoGrid>
-            {plants.map(({ ownedPlant }) => (
+            {plants.map(ownedPlant => (
               <HomePlantGridItem
                 key={ownedPlant.ownedPlantId}
                 customName={ownedPlant.customName}

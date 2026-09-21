@@ -1,4 +1,5 @@
 export { colors, gradients } from './colors';
+export { durations, springs } from './motion';
 export { layout, spacing } from './spacing';
 export { radii } from './radii';
 export { fontFamilies, typography } from './typography';

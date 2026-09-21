@@ -1,18 +1,27 @@
 const React = require('react');
 const ReactNative = require('react-native');
 
-function interpolate(value, inputRange, outputRange) {
-  if (value <= inputRange[0]) return outputRange[0];
-
+// Shared by interpolate() and interpolateColor(): finds the range `value` falls in, or reports
+// that it sits outside the range entirely so the caller can clamp to an endpoint.
+function locate(value, inputRange) {
   const lastIndex = inputRange.length - 1;
-  if (value >= inputRange[lastIndex]) return outputRange[lastIndex];
+  if (value <= inputRange[0]) return { atEnd: 0 };
+  if (value >= inputRange[lastIndex]) return { atEnd: lastIndex };
 
   const upperIndex = inputRange.findIndex(point => value <= point);
   const lowerIndex = Math.max(0, upperIndex - 1);
   const inputDelta = inputRange[upperIndex] - inputRange[lowerIndex];
   const progress = inputDelta === 0 ? 0 : (value - inputRange[lowerIndex]) / inputDelta;
 
-  return outputRange[lowerIndex] + (outputRange[upperIndex] - outputRange[lowerIndex]) * progress;
+  return { lowerIndex, progress, upperIndex };
+}
+
+function interpolate(value, inputRange, outputRange) {
+  const at = locate(value, inputRange);
+  if (at.atEnd !== undefined) return outputRange[at.atEnd];
+
+  return outputRange[at.lowerIndex]
+    + (outputRange[at.upperIndex] - outputRange[at.lowerIndex]) * at.progress;
 }
 
 const Reanimated = {
@@ -31,14 +40,12 @@ const Reanimated = {
   // Colors can't be linearly blended the way interpolate() blends numbers, and tests only ever
   // assert the endpoints — snap to whichever end of the range `value` is nearer.
   interpolateColor: (value, inputRange, outputRange) => {
-    const lastIndex = inputRange.length - 1;
-    if (value <= inputRange[0]) return outputRange[0];
-    if (value >= inputRange[lastIndex]) return outputRange[lastIndex];
+    const at = locate(value, inputRange);
+    if (at.atEnd !== undefined) return outputRange[at.atEnd];
 
-    const upperIndex = inputRange.findIndex(point => value <= point);
-    const lowerIndex = Math.max(0, upperIndex - 1);
-    const midpoint = (inputRange[lowerIndex] + inputRange[upperIndex]) / 2;
-    return value < midpoint ? outputRange[lowerIndex] : outputRange[upperIndex];
+    // Colors can't be blended the way interpolate() blends numbers, and tests only ever assert
+    // the endpoints — snap to whichever end of the range `value` is nearer.
+    return at.progress < 0.5 ? outputRange[at.lowerIndex] : outputRange[at.upperIndex];
   },
   measure: () => null,
   runOnJS: callback => callback,
@@ -49,6 +56,9 @@ const Reanimated = {
   useAnimatedRef: () => React.createRef(),
   useAnimatedScrollHandler: handler => handler,
   useAnimatedStyle: updater => updater(),
+  // Tests run as if the OS reduce-motion setting is off, which is the path the components
+  // actually animate down; the reduced path just assigns values directly.
+  useReducedMotion: () => false,
   useDerivedValue: updater => ({ value: updater() }),
   useEvent: () => undefined,
   useHandler: () => ({ context: {}, doDependenciesDiffer: false, useWeb: false }),

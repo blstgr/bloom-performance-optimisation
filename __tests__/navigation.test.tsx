@@ -272,7 +272,7 @@ test('renders library search and keeps plant wiki tab selected', async () => {
   expect(renderer?.root.findByProps({ accessibilityLabel: 'Search plant wiki' })).toBeTruthy();
   expect(
     renderer?.root
-      .findAllByProps({ accessibilityLabel: 'Plant wiki' })
+      .findAllByProps({ accessibilityLabel: 'plant wiki' })
       .some(node => node.props.accessibilityState?.selected === true),
   ).toBe(true);
 });

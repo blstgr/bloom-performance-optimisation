@@ -267,7 +267,12 @@ const styles = StyleSheet.create({
     width: sizes.input.height,
   },
   // Large variant hugs the icon instead of matching a fixed square slot: width comes from the
-  // icon's own intrinsic size plus this horizontal padding, not from the row height.
+  // icon's own intrinsic size plus this padding, not from the row height.
+  //
+  // The two paddings differ on purpose. `paddingLeft` matches the suggestion rows'
+  // `paddingHorizontal` (LibraryScreen `resultRow`) so both search icons sit on the same x.
+  // `paddingRight` matches those rows' `gap` so the text after the icon lands on the same x too —
+  // a symmetric spacing.md here would push the typed query 8px right of every suggestion below it.
   leadingIconSlotLarge: {
     alignItems: 'center',
     borderBottomLeftRadius: radii.pill,
@@ -276,6 +281,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
     height: sizes.input.heightLarge,
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
   },
 });

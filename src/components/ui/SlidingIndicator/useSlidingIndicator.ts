@@ -1,0 +1,80 @@
+import React from 'react';
+import type { LayoutChangeEvent } from 'react-native';
+import {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+
+import { springs } from '../../../theme';
+
+type ItemLayout = {
+  width: number;
+  x: number;
+};
+
+/**
+ * Drives a single pill that glides between the items of a bar, instead of every item fading its
+ * own background independently. One pill moving reads as one object; N cross-fades do not.
+ *
+ * Positioning comes entirely from measured layout, so nothing assumes a fixed item size or a
+ * stable set of items — the favorites filter only renders chips matching something favorited,
+ * and re-measurement handles that without special-casing.
+ *
+ * Only usable by a bar that is a single live instance, because the pill's position is
+ * per-instance state. That rules out `MainTabBar`: `docs/nav-spec.md` ("Tab bar ownership") has
+ * each tab screen render its own copy, so the frosted bar can sit inside `ScreenLayout`'s overlay
+ * and let content scroll behind it, and `detachInactiveScreens={false}` keeps all of them
+ * mounted. Four bars each holding a stationary pill cannot be made to look like one pill
+ * travelling, and the spec explicitly rejects moving the bar into the navigator to change that.
+ */
+export function useSlidingIndicator(activeKey: string | undefined) {
+  const layouts = React.useRef<Record<string, ItemLayout>>({});
+  // Whether the pill has been positioned yet. The first placement jumps; later ones spring —
+  // otherwise the pill would fly in from x=0 every time the bar mounts.
+  const hasPlaced = React.useRef(false);
+  const x = useSharedValue(0);
+  // Zero until the first measurement, which keeps the pill invisible rather than flashing a
+  // full-width block for one frame.
+  const width = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
+
+  const applyActive = React.useCallback(() => {
+    if (activeKey == null) return;
+
+    const target = layouts.current[activeKey];
+    // Not measured yet; the matching onItemLayout will call back in.
+    if (!target) return;
+
+    if (hasPlaced.current && !reduceMotion) {
+      x.value = withSpring(target.x, springs.slidingIndicator);
+      width.value = withSpring(target.width, springs.slidingIndicator);
+    } else {
+      x.value = target.x;
+      width.value = target.width;
+    }
+
+    hasPlaced.current = true;
+  }, [activeKey, reduceMotion, width, x]);
+
+  const onItemLayout = React.useCallback(
+    (key: string, event: LayoutChangeEvent) => {
+      const { width: itemWidth, x: itemX } = event.nativeEvent.layout;
+      layouts.current[key] = { width: itemWidth, x: itemX };
+      if (key === activeKey) applyActive();
+    },
+    [activeKey, applyActive],
+  );
+
+  React.useEffect(() => {
+    applyActive();
+  }, [applyActive]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value }],
+    width: width.value,
+  }));
+
+  return { indicatorStyle, onItemLayout };
+}

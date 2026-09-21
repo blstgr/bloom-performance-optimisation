@@ -88,8 +88,8 @@ module.exports = {
       files: ['src/components/**/*.{ts,tsx}', 'src/features/**/*.{ts,tsx}', 'src/screens/**/*.{ts,tsx}'],
       // data/** holds literal domain values (e.g. a species' wateringIntervalDays) —
       // those are content, not unnamed style/layout constants, so they're excluded
-      // the same way stories/tests are.
-      excludedFiles: ['**/*.stories.tsx', '**/*.test.tsx', '**/data/**'],
+      // the same way tests are.
+      excludedFiles: ['**/*.test.tsx', '**/data/**'],
       rules: {
         'no-magic-numbers': [
           'error',

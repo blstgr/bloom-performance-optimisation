@@ -11,6 +11,19 @@ import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
+/**
+ * The navigator deliberately draws no tab bar of its own: each tab screen renders `MainTabBar`
+ * itself, inside its `ScreenLayout` bottom-actions overlay.
+ *
+ * Why: the bar is frosted glass and content has to scroll *behind* it, so it needs to sit in the
+ * screen's own absolutely-positioned overlay. A navigator-level `tabBar` renders outside the
+ * screen, which is a different place in the view hierarchy for the blur to sample from.
+ *
+ * Accepted consequence: a new tab screen must render `MainTabBar` itself and pass the same props
+ * (`activeScreen`, `onAddPlant`, `onNavigate`). That repetition is the price of the glass overlay,
+ * not an oversight — and it is why the bar has no shared sliding indicator: four bars are mounted
+ * at once (see `detachInactiveScreens` above), each with a constant active key.
+ */
 function renderNoTabBar() {
   return null;
 }
