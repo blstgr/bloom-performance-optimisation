@@ -17,4 +17,6 @@ export type {
   TabParamList,
   WaterScreenProps,
 } from './types';
+export { MainTabBar } from './MainTabBar';
+export * from './useIsScreenFocused';
 export * from './useTabScreenNavigation';

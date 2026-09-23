@@ -2,15 +2,13 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '../components/ui/AppText';
-import { BottomActions } from '../components/ui/BottomActions';
 import { Icon } from '../components/ui/Icon';
 import { ScreenLayout } from '../components/ui/ScreenLayout';
 import { TopActions } from '../components/ui/TopActions';
 import { usePlantData } from '../features/plants/data/PlantDataProvider';
 import { buildPlantSchedule, getScheduleBaseDate, isWateringDue } from '../features/plants/data/schedule';
 import { WateringCard } from '../features/watering/components/WateringCard';
-import { SCREENS, type WaterScreenProps, useTabScreenNavigation } from '../navigation';
-import { MainTabBar } from '../navigation/MainTabBar';
+import { type WaterScreenProps, useTabScreenNavigation } from '../navigation';
 import { colors, layout, spacing } from '../theme';
 
 const FIRST_SCHEDULE_ITEM_INDEX = 0;
@@ -18,7 +16,7 @@ const EMPTY_SUBTITLE_LINE_HEIGHT = 20;
 const WATERING_CARD_GAP = 4;
 
 export function WaterScreen({ navigation }: WaterScreenProps) {
-  const { navigateTab, openAddPlant, openPlantDetail, openSettings } = useTabScreenNavigation(navigation);
+  const { openPlantDetail, openSettings } = useTabScreenNavigation(navigation);
   const { getSpeciesById, markWatered, ownedPlants } = usePlantData();
   const scheduledPlants = ownedPlants
     .map(ownedPlant => {
@@ -53,17 +51,7 @@ export function WaterScreen({ navigation }: WaterScreenProps) {
       scrollableContentSharesTopGap={scheduledPlants.length > 0}
       contentLayout="start"
       contentStyle={styles.content}
-      bottomActions={(
-        <BottomActions
-          bottomBar={(
-            <MainTabBar
-              activeScreen={SCREENS.WATER}
-              onAddPlant={openAddPlant}
-              onNavigate={navigateTab}
-            />
-          )}
-        />
-      )}>
+      reserveBottomBarSpace>
         {scheduledPlants.length > 0 ? (
           <View style={styles.notificationState}>
             {scheduledPlants.map(({ ownedPlant, schedule }) => {

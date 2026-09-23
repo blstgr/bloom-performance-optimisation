@@ -6,6 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gradients, layout, sizes, spacing } from '../../../theme';
 
 const FLOATING_BOTTOM_ACTION_RESERVED_HEIGHT = sizes.nav.item;
+/**
+ * Breathing room between the last scrollable item and the floating bar above it.
+ *
+ * Its own constant rather than `stackedGap`, which this used to borrow: `stackedGap` means "gap
+ * around a non-overlay content block" and screens set it for reasons that have nothing to do with
+ * the bar. LibraryScreen set it to 16 for its own layout and silently got 16px less clearance
+ * than every other tab screen as a result.
+ */
+const FLOATING_BOTTOM_ACTION_CLEARANCE = spacing.xxl;
 const OVERLAY_Z_INDEX = 2;
 
 export type ScreenContentLayout =
@@ -48,11 +57,33 @@ type ScrollableScreenLayoutProps = ScreenLayoutBaseProps & {
    * At rest it preserves the normal 32px rhythm; after scrolling, 16px remains.
    */
   scrollableContentSharesTopGap?: boolean;
-};
+} & (
+  | {
+      /**
+       * Reserve room at the bottom for a floating bar this screen does *not* render itself — the
+       * tab bar supplied by the navigator. Reserving space and owning the bar are separate
+       * concerns: `bottomActions` does both, this does only the first, so scrollable content
+       * still clears the bar instead of vanishing behind it.
+       *
+       * Mutually exclusive with `bottomActions`: a screen that renders its own bottom slot is
+       * already reserving for it, and doing both would reserve one inset for two bars.
+       */
+      reserveBottomBarSpace: true;
+      bottomActions?: never;
+      bottomActionsOverlay?: never;
+    }
+  | { reserveBottomBarSpace?: false }
+);
 
 type StaticScreenLayoutProps = ScreenLayoutBaseProps & {
   scrollableContent?: false;
   scrollableContentSharesTopGap?: never;
+  /**
+   * Only meaningful on a scrollable screen: the reserve is scroll-content padding, and a static
+   * screen has no scroll content to pad. Declared `never` so setting it is a compile error rather
+   * than a prop that silently does nothing.
+   */
+  reserveBottomBarSpace?: never;
 };
 
 export type ScreenLayoutProps = ScrollableScreenLayoutProps | StaticScreenLayoutProps;
@@ -64,6 +95,7 @@ export function ScreenLayout({
   contentLayout = 'start',
   contentStyle,
   horizontalPadding = false,
+  reserveBottomBarSpace = false,
   scrollableContent = false,
   scrollableContentSharesTopGap = false,
   stackedGap = spacing.xxl,
@@ -73,6 +105,9 @@ export function ScreenLayout({
   const safeAreaInsets = useSafeAreaInsets();
   const isOverlay = bottomActions != null && bottomActionsOverlay;
   const isStacked = bottomActions != null && !bottomActionsOverlay;
+  // A floating bar needs the same bottom inset whether this screen renders it or the navigator
+  // does; only the rendering below is conditional on owning it.
+  const reservesFloatingBottomSpace = isOverlay || reserveBottomBarSpace;
   const contentContainerProps = scrollableContent
     ? {
         contentInsetAdjustmentBehavior: 'never' as const,
@@ -95,12 +130,12 @@ export function ScreenLayout({
     contentLayout,
   );
   const scrollBottomInsetStyle =
-    scrollableContent && isOverlay
+    scrollableContent && reservesFloatingBottomSpace
       ? {
           paddingBottom:
             safeAreaInsets.bottom +
             FLOATING_BOTTOM_ACTION_RESERVED_HEIGHT +
-            stackedGap,
+            FLOATING_BOTTOM_ACTION_CLEARANCE,
         }
       : null;
   const scrollSharedTopGapStyle =

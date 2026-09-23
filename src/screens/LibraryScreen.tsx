@@ -3,15 +3,13 @@ import { FlatList, Keyboard, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from '../components/ui/AppText';
-import { BottomActions } from '../components/ui/BottomActions';
 import { Icon } from '../components/ui/Icon';
 import { Input, type InputActions } from '../components/ui/Input';
 import { ScreenLayout } from '../components/ui/ScreenLayout';
 import { usePlantData } from '../features/plants/data/PlantDataProvider';
 import { searchSpeciesByRelevance } from '../features/plants/data/speciesSearch';
 import type { PlantSpecies } from '../features/plants/data/types';
-import { SCREENS, type LibraryScreenProps, useTabScreenNavigation } from '../navigation';
-import { MainTabBar } from '../navigation/MainTabBar';
+import { type LibraryScreenProps, useTabScreenNavigation } from '../navigation';
 import type { PerenualSpeciesListItem } from '../services/types';
 import { colors, layout, radii, sizes, spacing } from '../theme';
 
@@ -30,7 +28,7 @@ const SEARCH_DEBOUNCE_MS = 350;
 
 export function LibraryScreen({ navigation }: LibraryScreenProps) {
   const insets = useSafeAreaInsets();
-  const { navigateTab, openAddPlant, openAddPlantPhotoSearch, openSpeciesInfo } = useTabScreenNavigation(navigation);
+  const { openAddPlantPhotoSearch, openSpeciesInfo } = useTabScreenNavigation(navigation);
   const {
     addSearchHistoryEntry,
     pendingLibrarySearch,
@@ -155,19 +153,7 @@ export function LibraryScreen({ navigation }: LibraryScreenProps) {
       ]}
       scrollableContent
       topActionsOverlay
-      bottomActionsOverlay={false}
-      stackedGap={spacing.md}
-      bottomActions={(
-        <BottomActions
-          bottomBar={(
-            <MainTabBar
-              activeScreen={SCREENS.LIBRARY}
-              onAddPlant={openAddPlant}
-              onNavigate={navigateTab}
-            />
-          )}
-        />
-      )}>
+      reserveBottomBarSpace>
       <Pressable
         accessible={false}
         onPress={Keyboard.dismiss}

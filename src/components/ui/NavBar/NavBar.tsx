@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, View, type LayoutRectangle, type StyleProp, type ViewStyle } from 'react-native';
+import Reanimated from 'react-native-reanimated';
 
-import { sizes, spacing } from '../../../theme';
+import { colors, radii, sizes, spacing } from '../../../theme';
 import { Badge } from '../Badge';
 import { type IconName } from '../Icon';
 import { SegmentedBarBase } from '../SegmentedBarBase';
+import { useSlidingIndicator } from '../SlidingIndicator';
 
 import { NavBarItem } from './NavBarItem';
 
@@ -23,23 +25,50 @@ export type NavBarProps<Key extends string = string> = {
 };
 
 export function NavBar<Key extends string = string>({ activeKey, items, style }: NavBarProps<Key>) {
-  const itemLayouts = React.useRef<Record<string, LayoutRectangle>>({});
-  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+  // One store of item geometry, in state rather than a ref, because two things now render from
+  // it: the badge overlay and each item's pill-overlap calculation. It was previously a ref plus
+  // a `forceUpdate()` fired from onLayout, which re-entered layout and looped (an Android ANR)
+  // until it was guarded. Updating state only when a rect actually changes removes both the
+  // duplicate store and the loop.
+  const [itemLayouts, setItemLayouts] = React.useState<Record<string, LayoutRectangle>>({});
+  const { indicatorStyle, indicatorWidth, indicatorX, onItemLayout } = useSlidingIndicator(activeKey, items.map(item => item.key));
+
+  const handleItemLayout = React.useCallback(
+    (key: string, layout: LayoutRectangle) => {
+      setItemLayouts(current => {
+        const previous = current[key];
+        if (previous?.x === layout.x && previous.width === layout.width) return current;
+
+        return { ...current, [key]: layout };
+      });
+    },
+    [],
+  );
 
   return (
     <View style={[styles.wrap, style]}>
       <SegmentedBarBase>
+        {/*
+          * One pill for the whole bar, gliding to whichever item is active, instead of each item
+          * carrying its own background. Rendered before the items so it paints underneath — React
+          * Native draws siblings in document order. Items are a fixed square, so only its x moves.
+          */}
+        <Reanimated.View pointerEvents="none" style={[styles.indicator, indicatorStyle]} />
         {items.map(item => (
           <View
             key={item.key}
             onLayout={e => {
-              itemLayouts.current[item.key] = e.nativeEvent.layout;
-              if (item.badgeCount) forceUpdate();
+              onItemLayout(item.key, e);
+              handleItemLayout(item.key, e.nativeEvent.layout);
             }}>
             <NavBarItem
               accessibilityLabel={item.accessibilityLabel ?? item.key}
               active={item.key === activeKey}
               icon={item.icon}
+              indicatorWidth={indicatorWidth}
+              indicatorX={indicatorX}
+              itemWidth={itemLayouts[item.key]?.width ?? 0}
+              itemX={itemLayouts[item.key]?.x ?? 0}
               onPress={item.onPress}
             />
           </View>
@@ -54,7 +83,7 @@ export function NavBar<Key extends string = string>({ activeKey, items, style }:
       <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
         {items.map(item => {
           if (!item.badgeCount) return null;
-          const layout = itemLayouts.current[item.key];
+          const layout = itemLayouts[item.key];
           if (!layout) return null;
           return (
             <Badge
@@ -74,6 +103,14 @@ const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
     top: -sizes.nav.badgeOffset,
+  },
+  indicator: {
+    backgroundColor: colors.action.primary,
+    borderRadius: radii.pill,
+    height: sizes.nav.item,
+    left: 0,
+    position: 'absolute',
+    top: 0,
   },
   wrap: {
     alignSelf: 'center',

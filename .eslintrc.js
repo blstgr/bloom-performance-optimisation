@@ -85,7 +85,12 @@ module.exports = {
       // (see isJSXNumber in eslint's no-magic-numbers.js) with no option to disable it,
       // so this still won't catch those; needs a custom rule if that gap matters enough
       // to close, it can't be done via config.
-      files: ['src/components/**/*.{ts,tsx}', 'src/features/**/*.{ts,tsx}', 'src/screens/**/*.{ts,tsx}'],
+      files: [
+        'src/components/**/*.{ts,tsx}',
+        'src/features/**/*.{ts,tsx}',
+        'src/navigation/**/*.{ts,tsx}',
+        'src/screens/**/*.{ts,tsx}',
+      ],
       // data/** holds literal domain values (e.g. a species' wateringIntervalDays) —
       // those are content, not unnamed style/layout constants, so they're excluded
       // the same way tests are.

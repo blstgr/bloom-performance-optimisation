@@ -41,6 +41,11 @@ export function GlassView({
   const blurAndTint = (
     <>
       {Platform.OS === 'android' ? (
+        // Flat fill, not a real blur. `ultraThinMaterialLight` is iOS-only — Android's Fabric spec
+        // takes `dark | light | xlight` — but simply switching to `xlight` was tried on 2026-09-22
+        // and painted an opaque ~75% white sheet over the content rather than blurring what sits
+        // behind it (white screens, no error logged). Real Android glass needs the library's own
+        // Android path investigated, not a prop swap. See docs/FINDINGS-performance.md.
         <View style={[StyleSheet.absoluteFill, { backgroundColor: fallbackColor }]} />
       ) : (
         <BlurView

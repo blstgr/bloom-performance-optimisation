@@ -1,8 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, type LayoutRectangle, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type LayoutRectangle,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Rect, Stop } from 'react-native-svg';
 
-import { gradients, radii, shadows } from '../../../theme';
+import { colors, gradients, radii, shadows } from '../../../theme';
 import { GlassView } from '../GlassView';
 
 import { GLASS_BUTTON_BORDER_INSET, GLASS_BUTTON_BORDER_WIDTH } from './glassButtonTokens';
@@ -37,7 +43,15 @@ export function GlassButtonSurface({
       <GlassView
         border={false}
         containerColor="transparent"
-        fallbackColor={glassColor}
+        // `glassColor` is a *tint* meant to sit on top of a blur, so it is deliberately faint
+        // (8% white). `fallbackColor` is what shows when no blur is drawn, and then the tint is
+        // the whole surface — leaving the button all but invisible and its dark icon unreadable
+        // over dark content. So this is always the frosted stand-in, never the tint: the two
+        // cases are Android (GlassView paints a flat colour there) and iOS with Reduce
+        // Transparency enabled, where BlurView swaps itself for this colour. Gating on
+        // `Platform.OS` would fix the first and leave the second reachable from an accessibility
+        // setting.
+        fallbackColor={colors.surface.glass}
         style={[StyleSheet.absoluteFill, { borderRadius: radius }]}
         tintColor={glassColor}
       />

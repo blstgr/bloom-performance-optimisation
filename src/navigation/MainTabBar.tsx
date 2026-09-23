@@ -9,7 +9,8 @@ import { SCREENS } from './constants';
 import type { TabParamList } from './types';
 
 type MainTabBarProps = {
-  activeScreen: keyof TabParamList;
+  /** Undefined when the active route is not one of the tabs — no item is highlighted. */
+  activeScreen?: keyof TabParamList;
   onAddPlant: () => void;
   onNavigate: (screen: keyof TabParamList) => void;
 };

@@ -1,4 +1,7 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {
+  createBottomTabNavigator,
+  type BottomTabBarProps,
+} from '@react-navigation/bottom-tabs';
 import React from 'react';
 
 import { FavoritesScreen } from '../screens/FavoritesScreen';
@@ -7,25 +10,21 @@ import { LibraryScreen } from '../screens/LibraryScreen';
 import { WaterScreen } from '../screens/WaterScreen';
 
 import { SCREENS } from './constants';
+import { FloatingTabBar } from './FloatingTabBar';
 import type { TabParamList } from './types';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
 /**
- * The navigator deliberately draws no tab bar of its own: each tab screen renders `MainTabBar`
- * itself, inside its `ScreenLayout` bottom-actions overlay.
+ * One tab bar for the whole navigator, rendered over the screens rather than beside them.
  *
- * Why: the bar is frosted glass and content has to scroll *behind* it, so it needs to sit in the
- * screen's own absolutely-positioned overlay. A navigator-level `tabBar` renders outside the
- * screen, which is a different place in the view hierarchy for the blur to sample from.
- *
- * Accepted consequence: a new tab screen must render `MainTabBar` itself and pass the same props
- * (`activeScreen`, `onAddPlant`, `onNavigate`). That repetition is the price of the glass overlay,
- * not an oversight — and it is why the bar has no shared sliding indicator: four bars are mounted
- * at once (see `detachInactiveScreens` above), each with a constant active key.
+ * It is absolutely positioned (see `FloatingTabBar`) so the frosted glass still composites over
+ * scrolling content; screens reserve the matching bottom inset with `ScreenLayout`'s
+ * `reserveBottomBarSpace`. Rendering it once — rather than once per screen — is what lets the
+ * active-item pill animate between items at all.
  */
-function renderNoTabBar() {
-  return null;
+function renderFloatingTabBar(props: BottomTabBarProps) {
+  return <FloatingTabBar {...props} />;
 }
 
 export function TabNavigator() {
@@ -38,7 +37,7 @@ export function TabNavigator() {
       screenOptions={{
         headerShown: false,
       }}
-      tabBar={renderNoTabBar}>
+      tabBar={renderFloatingTabBar}>
       <Tab.Screen component={HomeScreen} name={SCREENS.HOME} />
       <Tab.Screen component={LibraryScreen} name={SCREENS.LIBRARY} />
       <Tab.Screen component={WaterScreen} name={SCREENS.WATER} />

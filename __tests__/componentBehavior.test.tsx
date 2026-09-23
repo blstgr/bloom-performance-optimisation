@@ -10,10 +10,8 @@ import { Tabs, type TabItem } from '../src/components/ui/Tabs';
 import { PlantDataProvider } from '../src/features/plants/data/PlantDataProvider';
 import { SettingsRow } from '../src/features/settings/components/SettingsPanel';
 import { WateringSlider } from '../src/features/watering/components/WateringSlider';
-import { SCREENS } from '../src/navigation/constants';
-import { MainTabBar } from '../src/navigation/MainTabBar';
+import { MainTabBar, SCREENS } from '../src/navigation';
 import { store } from '../src/store/store';
-import { colors } from '../src/theme';
 
 function render(element: React.ReactElement) {
   let renderer: ReactTestRenderer.ReactTestRenderer;
@@ -239,7 +237,15 @@ describe('component behavior', () => {
         .find(node => node.props.accessibilityRole === 'button');
 
       expect(addButton?.props.accessibilityState.selected).toBe(false);
-      expect(addButton?.findByProps({ color: colors.icon.primary })).toBeTruthy();
+
+      // Paired with a positive case so this can't pass vacuously. Asserting the add button
+      // renders a `colors.icon.primary` Icon would: every item now renders both a primary and an
+      // inverse layer and cross-fades their opacity, so that colour is always present.
+      const activeItem = renderer.root
+        .findAllByProps({ accessibilityRole: 'button' })
+        .find(node => node.props.accessibilityState?.selected === true);
+
+      expect(activeItem).toBeTruthy();
     }
   });
 

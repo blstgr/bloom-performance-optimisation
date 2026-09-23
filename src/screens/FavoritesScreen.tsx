@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 
-import { BottomActions } from '../components/ui/BottomActions';
 import { PhotoGrid } from '../components/ui/PhotoGrid';
 import { PlantCard } from '../components/ui/PlantCard';
 import { ScreenLayout } from '../components/ui/ScreenLayout';
@@ -10,13 +9,17 @@ import { TopActions } from '../components/ui/TopActions';
 import { FAVORITES_TABS, matchesTab } from '../features/plants/data/favoritesTabs';
 import { usePlantData } from '../features/plants/data/PlantDataProvider';
 import type { PlantSpecies } from '../features/plants/data/types';
-import { SCREENS, type FavoritesScreenProps, useTabScreenNavigation } from '../navigation';
-import { MainTabBar } from '../navigation/MainTabBar';
+import {
+  SCREENS,
+  useIsScreenFocused,
+  useTabScreenNavigation,
+  type FavoritesScreenProps,
+} from '../navigation';
 import { useAppSelector } from '../store/hooks';
 import { layout, spacing } from '../theme';
 
 export function FavoritesScreen({ navigation }: FavoritesScreenProps) {
-  const { navigateTab, openAddPlant, openSettings, openSpeciesInfo } = useTabScreenNavigation(navigation);
+  const { openSettings, openSpeciesInfo } = useTabScreenNavigation(navigation);
   const favorites = useAppSelector(state => state.favorites);
   const { getSpeciesById } = usePlantData();
   const [activeTab, setActiveTab] = React.useState(FAVORITES_TABS[0].key);
@@ -40,9 +43,14 @@ export function FavoritesScreen({ navigation }: FavoritesScreenProps) {
   // and MainTabBar's heart-item condition read the *same* value. Keying it on the resolved list
   // would mean an unresolvable species leaves the heart item visible while this screen bounces
   // straight back to Home the moment it's tapped.
+  // Guarded on focus because `detachInactiveScreens={false}` keeps this screen mounted: without
+  // it, unfavoriting from a plant's article fires this redirect from a screen the user isn't
+  // looking at, closing the article out from under them.
+  const isFocused = useIsScreenFocused();
+
   React.useEffect(() => {
-    if (favorites.length === 0) navigation.navigate(SCREENS.HOME);
-  }, [favorites.length, navigation]);
+    if (isFocused && favorites.length === 0) navigation.navigate(SCREENS.HOME);
+  }, [favorites.length, isFocused, navigation]);
 
   return (
     <ScreenLayout
@@ -59,17 +67,7 @@ export function FavoritesScreen({ navigation }: FavoritesScreenProps) {
       scrollableContentSharesTopGap
       contentLayout="start"
       contentStyle={styles.content}
-      bottomActions={(
-        <BottomActions
-          bottomBar={(
-            <MainTabBar
-              activeScreen={SCREENS.FAVORITES}
-              onAddPlant={openAddPlant}
-              onNavigate={navigateTab}
-            />
-          )}
-        />
-      )}>
+      reserveBottomBarSpace>
       <Tabs
         activeKey={effectiveActiveTab}
         onTabPress={setActiveTab}

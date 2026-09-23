@@ -22,14 +22,13 @@ type ItemLayout = {
  * stable set of items — the favorites filter only renders chips matching something favorited,
  * and re-measurement handles that without special-casing.
  *
- * Only usable by a bar that is a single live instance, because the pill's position is
- * per-instance state. That rules out `MainTabBar`: `docs/nav-spec.md` ("Tab bar ownership") has
- * each tab screen render its own copy, so the frosted bar can sit inside `ScreenLayout`'s overlay
- * and let content scroll behind it, and `detachInactiveScreens={false}` keeps all of them
- * mounted. Four bars each holding a stationary pill cannot be made to look like one pill
- * travelling, and the spec explicitly rejects moving the bar into the navigator to change that.
+ * Requires the bar to be a single live instance, because the pill's position is per-instance
+ * state — several mounted copies would each hold their own stationary pill and none would appear
+ * to travel. Both callers satisfy that: the favorites chips are one component, and the tab bar
+ * is rendered once by the navigator (see `docs/nav-spec.md`, "Tab bar ownership"). Rendering a
+ * second live `MainTabBar` would break this.
  */
-export function useSlidingIndicator(activeKey: string | undefined) {
+export function useSlidingIndicator(activeKey: string | undefined, itemKeys: string[]) {
   const layouts = React.useRef<Record<string, ItemLayout>>({});
   // Whether the pill has been positioned yet. The first placement jumps; later ones spring —
   // otherwise the pill would fly in from x=0 every time the bar mounts.
@@ -71,10 +70,27 @@ export function useSlidingIndicator(activeKey: string | undefined) {
     applyActive();
   }, [applyActive]);
 
+  // Drop geometry for items that no longer exist. `MainTabBar` adds and removes its Favorites
+  // item at runtime, and the item to its right then occupies exactly the slot it vacated — so a
+  // stale rect does not merely go unused, it points at a *different* item. Better to have no
+  // measurement (the pill holds position) than a confidently wrong one.
+  const liveKeySignature = itemKeys.join('\u0000');
+
+  React.useEffect(() => {
+    const liveKeys = new Set(liveKeySignature.split('\u0000'));
+
+    for (const key of Object.keys(layouts.current)) {
+      if (!liveKeys.has(key)) delete layouts.current[key];
+    }
+  }, [liveKeySignature]);
+
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: x.value }],
     width: width.value,
   }));
 
-  return { indicatorStyle, onItemLayout };
+  // `x`/`width` are returned as well as the style so an item can react to where the pill actually
+  // is, not just to its own active flag. A dark pill passing beneath a dark icon washes it out,
+  // and an item mid-travel never changes `active`, so its own flag cannot tell it to invert.
+  return { indicatorStyle, indicatorWidth: width, indicatorX: x, onItemLayout };
 }

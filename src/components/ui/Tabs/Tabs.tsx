@@ -131,7 +131,7 @@ function TabButton<Key extends string>({
 }
 
 export function Tabs<Key extends string = string>({ activeKey, onTabPress, tabs }: TabsProps<Key>) {
-  const { indicatorStyle, onItemLayout } = useSlidingIndicator(activeKey);
+  const { indicatorStyle, onItemLayout } = useSlidingIndicator(activeKey, tabs.map(tab => tab.key));
 
   return (
     <ScrollView

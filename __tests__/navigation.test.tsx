@@ -12,6 +12,7 @@ import { mockSpecies } from '../src/features/plants/data/mockPlants';
 import { PlantDataProvider, usePlantData } from '../src/features/plants/data/PlantDataProvider';
 import type { OwnedPlant, PlantSpecies } from '../src/features/plants/data/types';
 import {
+  MainTabBar,
   SCREENS,
   type AddPlantCameraScreenProps,
   type FavoritesScreenProps,
@@ -260,7 +261,7 @@ test('missing plant detail can close to home when there is no back route', async
   });
 });
 
-test('renders library search and keeps plant wiki tab selected', async () => {
+test('renders library search', async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
 
   await ReactTestRenderer.act(() => {
@@ -270,6 +271,26 @@ test('renders library search and keeps plant wiki tab selected', async () => {
   });
 
   expect(renderer?.root.findByProps({ accessibilityLabel: 'Search plant wiki' })).toBeTruthy();
+});
+
+// The tab bar used to be rendered by each screen, so this was asserted on LibraryScreen. It is
+// now rendered once by the navigator (see TabNavigator/FloatingTabBar), so the selected-tab
+// behaviour is checked where it actually lives.
+test('the tab bar marks the active tab selected', async () => {
+  let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
+
+  await ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(
+      renderWithProviders(
+        <MainTabBar
+          activeScreen={SCREENS.LIBRARY}
+          onAddPlant={jest.fn()}
+          onNavigate={jest.fn()}
+        />,
+      ),
+    );
+  });
+
   expect(
     renderer?.root
       .findAllByProps({ accessibilityLabel: 'plant wiki' })
