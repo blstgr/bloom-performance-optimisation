@@ -155,13 +155,15 @@ here, and no other dependency has a lighter equivalent:
 
 ```bash
 npx react-native bundle --platform ios --dev false --entry-file index.js \
-  --bundle-output /tmp/bloom.jsbundle --sourcemap-output /tmp/bloom.jsbundle.map
+  --bundle-output /tmp/bloom.jsbundle --sourcemap-output /tmp/bloom.jsbundle.map \
+  --sourcemap-sources-root "$PWD"
 
 npx source-map-explorer /tmp/bloom.jsbundle /tmp/bloom.jsbundle.map --no-border-checks --html
 ```
 
 `--no-border-checks` is required. Without it `source-map-explorer` fails on React Native bundles
-with *"source map refers to generated column Infinity"*.
+with *"source map refers to generated column Infinity"*. `--sourcemap-sources-root` keeps the
+treemap rooted at the project instead of nesting it under the absolute path to it.
 
 The 40% is off the JavaScript bundle. The installed app also contains native libraries and assets,
 so its total size drops by less.
